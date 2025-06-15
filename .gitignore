@@ -40,4 +40,33 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/app/generated/prisma
+# Node
+node_modules/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+prisma/migrations/
+
+# Env
+.env*
+!.env.example
+
+# Logs
+logs
+*.log
+
+# OS
+Thumbs.db
+
+# Turbo
+.turbo/
+
+# VSCode
+.vscode/
+
+# Build
+dist/
+
+# Others
+*.local
