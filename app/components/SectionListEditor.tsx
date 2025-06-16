@@ -52,12 +52,12 @@ function getDefaultContent(type: string) {
 
 export function SectionListEditor({
   initialSections,
-  slug,
+  pageId,
   onReorder,
   onSectionsChange,
 }: {
   initialSections: Section[]
-  slug: string
+  pageId: string
   onReorder?: () => void
   onSectionsChange?: (sections: Section[]) => void
 }) {  
@@ -71,6 +71,17 @@ export function SectionListEditor({
   useEffect(() => {
     if (onSectionsChange) onSectionsChange(sections)
   }, [sections, onSectionsChange])
+
+  // Patch toutes les sections du state dès que pageId est connu
+  useEffect(() => {
+    if (pageId) {
+      setSections(sections =>
+        sections.map(section =>
+          !section.pageId ? { ...section, pageId } : section
+        )
+      );
+    }
+  }, [pageId]);
 
   // Fonction pour mettre à jour le contenu d'une section
   const handleSectionChange = (id: string, newContent: any) => {
@@ -103,7 +114,7 @@ export function SectionListEditor({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         sections: updated.map(({ id, order }) => ({ id, order })),
-        slug,
+        pageId,
       }),
     })
 
@@ -115,25 +126,34 @@ export function SectionListEditor({
   // Fonction de sauvegarde manuelle
   const handleSave = async () => {
     try {
-      const sectionsToSave = sections.map(section => ({
-        id: section.id,
-        content: section.content || {},
-        order: section.order
-      }))
-      await fetch("/api/sections/save-all", {
+      // S'assurer que toutes les sections ont un pageId
+      const sectionsToSave = sections.map(section => {
+        if (!section.pageId) {
+          throw new Error(`Section ${section.id} is missing pageId`);
+        }
+        return section;
+      });
+
+      console.log("Payload envoyé à save-all :", sectionsToSave);
+      const response = await fetch("/api/sections/save-all", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sectionsToSave),
-      })
-      if (onReorder) onReorder()
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 2000)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save sections');
+      }
+
+      if (onReorder) onReorder();
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 2000);
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde :", error)
-      setShowError(true)
-      setTimeout(() => setShowError(false), 2000)
+      console.error('Error saving sections:', error);
+      setShowError(true);
+      setTimeout(() => setShowError(false), 2000);
     }
-  }
+  };
 
   return (
     <DndContext
@@ -143,7 +163,7 @@ export function SectionListEditor({
     >
       <button
         onClick={handleSave}
-        className="ml-auto mb-4 bg-green-600 text-white px-4 py-2 rounded shadow"
+        className="ml-auto mb-4 bg-green-600 text-white px-4 py-2 rounded shadow cursor-pointer"
       >
         ✅ Valider les modifications
       </button>
@@ -178,10 +198,10 @@ export function SectionListEditor({
             const newSection = {
               id: Math.random().toString(36).slice(2),
               type: newSectionType,
-              content: getDefaultContent(newSectionType),
+              pageId,
               order: sections.length,
-              pageId: "",
               position: sections.length,
+              content: getDefaultContent(newSectionType),
             }
             setSections([...sections, newSection])
             if (onSectionsChange) onSectionsChange([...sections, newSection])

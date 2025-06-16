@@ -2,52 +2,54 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const sections = await req.json()
-    console.log('Sections reçues:', sections)
+    const session = await getServerSession(authOptions)
 
-    if (!Array.isArray(sections)) {
-      return new Response(JSON.stringify({ error: 'Les données doivent être un tableau' }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      })
+    if (!session?.user?.id) {
+      return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    for (const section of sections) {
-      if (!section.id || !section.content) {
-        return new Response(JSON.stringify({ 
-          error: 'Chaque section doit avoir un id et un content',
-          section
-        }), { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        })
-      }
+    const sections = await req.json()
 
-      await prisma.section.update({
+    // Vérifier que toutes les sections ont un pageId
+    const sectionsWithoutPageId = sections.filter((section: any) => !section.pageId)
+    if (sectionsWithoutPageId.length > 0) {
+      return new NextResponse("Some sections are missing pageId", { status: 400 })
+    }
+
+    // Upsert toutes les sections
+    const upsertPromises = sections.map((section: any) =>
+      db.section.upsert({
         where: { id: section.id },
-        data: { 
+        update: {
           content: section.content,
-          order: section.order
+          order: section.order,
+          position: section.position,
+          type: section.type,
+          pageId: section.pageId,
+        },
+        create: {
+          id: section.id,
+          content: section.content,
+          order: section.order,
+          position: section.position,
+          type: section.type,
+          pageId: section.pageId,
         },
       })
-    }
+    )
 
-    revalidatePath("/") // ou revalidatePath("/[slug]") si tu veux large
-    return new Response(JSON.stringify({ success: true }), { 
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    const updatedSections = await Promise.all(upsertPromises)
+
+    return NextResponse.json(updatedSections)
   } catch (error) {
-    console.error('Erreur lors de la sauvegarde:', error)
-    return new Response(JSON.stringify({ 
-      error: 'Erreur lors de la sauvegarde',
-      details: error instanceof Error ? error.message : 'Erreur inconnue'
-    }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    })
+    console.error("[SECTIONS_SAVE_ALL]", error)
+    return new NextResponse("Internal Error", { status: 500 })
   }
 }

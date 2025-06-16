@@ -50,13 +50,11 @@ const COLORS = [
 ]
 
 const FONT_SIZES = [
-  { name: "Petit", value: "sm" },
-  { name: "Normal", value: "base" },
-  { name: "Grand", value: "lg" },
-  { name: "Très grand", value: "xl" },
-  { name: "Énorme", value: "2xl" },
-  { name: "Titre", value: "3xl" },
-  { name: "Grand titre", value: "4xl" },
+  { name: "Petit", value: "xl" },
+  { name: "Normal", value: "2xl" },
+  { name: "Grand", value: "4xl" },
+  { name: "Très grand", value: "6xl" },
+  { name: "Énorme", value: "7xl" },
 ]
 
 const IMAGE_SIZES = [
@@ -88,6 +86,8 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
 
   // Fonction de sauvegarde avec debounce
   const saveChanges = useCallback(async (data: any) => {
+    // N'effectue le PUT que si l'id est persisté (longueur > 10)
+    if (!section.id || section.id.length < 10) return;
     try {
       console.log('Sauvegarde des modifications:', data)
       const response = await fetch(`/api/sections/${section.id}`, {
@@ -95,7 +95,6 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: data }),
       })
-      
       if (!response.ok) {
         throw new Error('Erreur lors de la sauvegarde')
       }
@@ -228,7 +227,7 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
             />
             <span className="text-xs">{Math.round(100 * (section.content.overlayOpacity ?? 0.5))}%</span>
           </div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col items-center gap-2 mb-2">
             <input
               name="cta.label"
               placeholder="Bouton"
@@ -306,7 +305,7 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col items-center gap-2 mb-2">
             <input
               name="image"
               placeholder="URL image"
@@ -335,7 +334,7 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col items-center gap-2 mb-2">
             <input
               name="cta.label"
               placeholder="Bouton"
@@ -756,59 +755,73 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
             onChange={handleChange}
             className="border p-2 w-full mb-2"
           />
+          {/* Ajout automatique d'un plan par défaut si aucun n'existe */}
+          {(!section.content.plans || section.content.plans.length === 0) && onChange && onChange({
+            ...section.content,
+            plans: [
+              {
+                name: "Starter",
+                price: "Gratuit",
+                features: [
+                  "1 utilisateur",
+                  "Support basique",
+                  "Accès limité aux fonctionnalités",
+                ],
+                cta: { label: "Commencer", href: "#" },
+              },
+            ]
+          })}
           {(section.content.plans || []).map((plan: any, idx: number) => (
             <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
               <input
                 name={`plans.${idx}.name`}
-                placeholder="Nom du plan"
+                placeholder="Nom du plan (ex: Starter, Pro...)"
                 value={plan.name || ""}
                 onChange={handleChange}
                 className="border p-1 w-full mb-1"
               />
               <input
                 name={`plans.${idx}.price`}
-                placeholder="Prix"
+                placeholder="Prix (ex: Gratuit, 19€/mois...)"
                 value={plan.price || ""}
                 onChange={handleChange}
                 className="border p-1 w-full mb-1"
               />
-              <div className="mb-1">
-                <label className="text-xs">Fonctionnalités :</label>
-                {(plan.features || []).map((f: string, fidx: number) => (
-                  <input
-                    key={fidx}
-                    name={`plans.${idx}.features.${fidx}`}
-                    placeholder={`Fonctionnalité ${fidx + 1}`}
-                    value={f || ""}
-                    onChange={handleChange}
-                    className="border p-1 w-full mb-1"
-                  />
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onChange) {
-                      const updated = [...(section.content.plans || [])]
-                      updated[idx].features = [...(updated[idx].features || []), ""]
-                      onChange({ ...section.content, plans: updated })
-                    }
-                  }}
-                  className="bg-gray-100 px-2 py-0.5 rounded text-xs"
-                >
-                  + Ajouter une fonctionnalité
-                </button>
-              </div>
+              <label className="text-xs">Fonctionnalités :</label>
+              {(plan.features || [""]).map((f: string, fidx: number) => (
+                <input
+                  key={fidx}
+                  name={`plans.${idx}.features.${fidx}`}
+                  placeholder={`Fonctionnalité ${fidx + 1} (ex: Support, Utilisateurs illimités...)`}
+                  value={f || ""}
+                  onChange={handleChange}
+                  className="border p-1 w-full mb-1"
+                />
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onChange) {
+                    const updated = [...(section.content.plans || [])]
+                    updated[idx].features = [...(updated[idx].features || []), ""]
+                    onChange({ ...section.content, plans: updated })
+                  }
+                }}
+                className="bg-gray-100 px-2 py-0.5 rounded text-xs mb-2"
+              >
+                + Ajouter une fonctionnalité
+              </button>
               <div className="flex gap-2">
                 <input
                   name={`plans.${idx}.cta.label`}
-                  placeholder="Texte bouton"
+                  placeholder="Texte bouton (ex: Choisir, Essayer...)"
                   value={plan.cta?.label || ""}
                   onChange={handleChange}
                   className="border p-1 flex-1"
                 />
                 <input
                   name={`plans.${idx}.cta.href`}
-                  placeholder="Lien bouton"
+                  placeholder="Lien bouton (ex: /signup)"
                   value={plan.cta?.href || ""}
                   onChange={handleChange}
                   className="border p-1 flex-1"
@@ -822,7 +835,19 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
               if (onChange) {
                 onChange({
                   ...section.content,
-                  plans: [...(section.content.plans || []), { name: "", price: "", features: [], cta: { label: "", href: "" } }],
+                  plans: [
+                    ...((section.content.plans && section.content.plans.length > 0) ? section.content.plans : []),
+                    {
+                      name: "Pro",
+                      price: "19€/mois",
+                      features: [
+                        "Jusqu'à 10 utilisateurs",
+                        "Support prioritaire",
+                        "Toutes les fonctionnalités principales",
+                      ],
+                      cta: { label: "Essayer Pro", href: "#" },
+                    },
+                  ],
                 })
               }
             }}

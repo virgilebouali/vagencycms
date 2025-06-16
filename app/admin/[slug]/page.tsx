@@ -5,5 +5,5 @@ export default async function AdminEditPage({ params }: { params: { slug: string
   const page = await getPageBySlug(params.slug)
   if (!page) return <p>Page introuvable</p>
 
-  return <PageEditorClient initialSections={page.sections} />
+  return <PageEditorClient initialSections={page.sections} initialThemeId={page.themeId} slug={params.slug} pageId={page.id} />
 }

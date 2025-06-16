@@ -9,30 +9,34 @@ export default function SectionListEditorWrapper({ slug, initialSections }: {
   initialSections: Section[]
 }) {
     const [sections, setSections] = useState(initialSections)
+    const [pageId, setPageId] = useState<string | null>(null)
 
     useEffect(() => {
-      setSections(initialSections)
-    }, [initialSections])
-    
-  const fetchSections = async () => {
-    const res = await fetch(`/api/pages/${slug}/sections`, { cache: "no-store" })
-    const data = await res.json()
-    setSections(data)
-  }
+      fetch(`/api/pages/${slug}`)
+        .then(res => res.json())
+        .then(page => setPageId(page?.id))
+    }, [slug])
 
-  useEffect(() => {
-    // Recharge les sections après 500ms pour laisser le backend traiter l'ordre
-    const interval = setInterval(() => {
-      fetchSections()
-    }, 1000)
+    const fetchSections = async () => {
+      const res = await fetch(`/api/pages/${slug}/sections`, { cache: "no-store" })
+      const data = await res.json()
+      setSections(data)
+    }
 
-    return () => clearInterval(interval)
-  }, [])
+    useEffect(() => {
+      const interval = setInterval(() => {
+        fetchSections()
+      }, 1000)
+      return () => clearInterval(interval)
+    }, [])
 
-  return (
-    <SectionListEditor
-      initialSections={sections}
-      onReorder={fetchSections}
-    />
-  )
+    return (
+      pageId && (
+        <SectionListEditor
+          initialSections={sections}
+          pageId={pageId}
+          onReorder={fetchSections}
+        />
+      )
+    )
 }

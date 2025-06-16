@@ -26,8 +26,8 @@ export default function HeroSection({ section }: { section: Section }) {
       <div className="absolute inset-0 z-0" style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }} />
       {/* Contenu */}
       <div className="relative z-10 flex flex-col items-center justify-center text-center w-full px-4 py-16">
-        <h1 className={`text-${section.content.titleSize || "4xl"} font-bold text-white drop-shadow-lg`}>{section.content.title}</h1>
-        <p className={`text-${section.content.subtitleSize || "xl"} mt-4 text-white drop-shadow`}>{section.content.subtitle}</p>
+        <h1 className={`text-${section.content.titleSize || "7xl"} font-bold text-white drop-shadow-lg`}>{section.content.title}</h1>
+        <p className={`text-${section.content.subtitleSize || "2xl"} mt-4 text-white drop-shadow`}>{section.content.subtitle}</p>
         <a
           href={ctaHref}
           className="mt-8 inline-block text-white px-6 py-3 rounded shadow-lg text-lg font-semibold hover:bg-opacity-90 transition"

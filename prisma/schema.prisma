@@ -15,20 +15,25 @@ datasource db {
 
 model Page {
   id        String    @id @default(cuid())
-  slug      String    @unique
   title     String
-  sections  Section[]
+  slug      String    @unique
+  userId    String?   // Rendu optionnel pour la migration
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) // Ajout d'une valeur par défaut
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections  Section[]
 }
 
 model Section {
-  id       String   @id @default(cuid())
-  type     String   // 'hero', 'textImage', etc.
-  content  Json
-  order    Int
-  page     Page     @relation(fields: [pageId], references: [id])
-  pageId   String
-  position Int   
+  id        String   @id @default(cuid())
+  type      String
+  content   Json
+  order     Int
+  position  Int
+  pageId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) // Ajout d'une valeur par défaut
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 model Settings {
@@ -39,31 +44,32 @@ model Settings {
   }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-
   accounts      Account[]
   sessions      Session[]
+  pages         Page[]
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -72,8 +78,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
