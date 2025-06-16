@@ -35,7 +35,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       }}
     >
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--color-background)] text-[var(--color-text)]`}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

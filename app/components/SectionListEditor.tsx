@@ -26,6 +26,8 @@ export function SectionListEditor({
 }) {  
   
   const [sections, setSections] = useState(initialSections)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
 
   // Synchronise le parent à chaque changement
   useEffect(() => {
@@ -86,10 +88,12 @@ export function SectionListEditor({
         body: JSON.stringify(sectionsToSave),
       })
       if (onReorder) onReorder()
-      alert("Modifications enregistrées !")
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 2000)
     } catch (error) {
       console.error("Erreur lors de la sauvegarde :", error)
-      alert("Erreur lors de la sauvegarde")
+      setShowError(true)
+      setTimeout(() => setShowError(false), 2000)
     }
   }
 
@@ -105,6 +109,12 @@ export function SectionListEditor({
       >
         ✅ Valider les modifications
       </button>
+      {showSuccess && (
+        <div className="mb-2 p-2 bg-green-100 text-green-800 rounded text-center transition-all">✔️ Modifications enregistrées</div>
+      )}
+      {showError && (
+        <div className="mb-2 p-2 bg-red-100 text-red-800 rounded text-center transition-all">❌ Erreur lors de la sauvegarde</div>
+      )}
       <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
         {sections.map((section) => (
           <SortableItem key={section.id} id={section.id}>
@@ -117,17 +127,17 @@ export function SectionListEditor({
     </DndContext>
   )
 }
-
 function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.8 : 1,
   }
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className={`transition-transform duration-200 ${isDragging ? 'scale-50' : 'scale-100'}`}>
       <div className="relative">
         <div
           {...attributes}
@@ -141,3 +151,4 @@ function SortableItem({ id, children }: { id: string; children: React.ReactNode 
     </div>
   )
 }
+

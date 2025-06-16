@@ -3,26 +3,42 @@
 import { useTransition, useState, useEffect } from "react"
 import { themes } from "@/lib/themes"
 
+type ThemeKey = keyof typeof themes
+
 export default function ThemeSelector({ initialThemeId }: { initialThemeId: string }) {
   const [isPending, startTransition] = useTransition()
   const [selectedTheme, setSelectedTheme] = useState(initialThemeId)
 
   const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const themeId = e.target.value
+    const themeId = e.target.value as ThemeKey
     console.log("🎨 Thème sélectionné :", themeId)
 
-    setSelectedTheme(themeId)
-
     startTransition(async () => {
-      await fetch("/api/theme", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ themeId }),
-      })
-
-      window.location.reload()
+      try {
+        await fetch("/api/theme", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ themeId }),
+        })
+        
+        // Mettre à jour le thème sélectionné après la réponse du serveur
+        setSelectedTheme(themeId)
+        
+        // Appliquer les nouvelles couleurs
+        const theme = themes[themeId]
+        const root = document.documentElement
+        root.style.setProperty("--color-primary", theme.primary)
+        root.style.setProperty("--color-secondary", theme.secondary)
+        root.style.setProperty("--color-background", theme.background)
+        root.style.setProperty("--color-text", theme.text)
+      } catch (error) {
+        console.error("Erreur lors du changement de thème :", error)
+        // Revenir à l'ancien thème en cas d'erreur
+        setSelectedTheme(initialThemeId)
+      }
     })
   }
+
   useEffect(() => {
     const root = document.documentElement;
   
@@ -32,6 +48,7 @@ export default function ThemeSelector({ initialThemeId }: { initialThemeId: stri
     console.log("--color-background:", getComputedStyle(root).getPropertyValue("--color-background"));
     console.log("--color-text:", getComputedStyle(root).getPropertyValue("--color-text"));
   }, []);
+
   return (
     <div className="mb-6">
       <label className="block mb-1 font-medium text-sm">Changer le thème</label>
@@ -39,6 +56,7 @@ export default function ThemeSelector({ initialThemeId }: { initialThemeId: stri
         onChange={handleChange}
         value={selectedTheme}
         className="border p-2 rounded text-black"
+        disabled={isPending}
       >
         {Object.entries(themes).map(([key, theme]) => (
           <option key={key} value={key}>
