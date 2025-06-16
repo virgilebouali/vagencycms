@@ -113,7 +113,7 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
     return () => clearTimeout(timeoutId)
   }, [section.content, saveChanges])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     let newContent
 
@@ -641,6 +641,527 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
             className="bg-gray-200 px-3 py-1 rounded"
           >
             + Ajouter un avantage
+          </button>
+        </>
+      )}
+
+      {section.type === "testimonials" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.testimonials || []).map((item: any, idx: number) => (
+            <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
+              <input
+                name={`testimonials.${idx}.name`}
+                placeholder="Nom"
+                value={item.name || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`testimonials.${idx}.role`}
+                placeholder="Rôle"
+                value={item.role || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`testimonials.${idx}.photo`}
+                placeholder="URL photo"
+                value={item.photo || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <textarea
+                name={`testimonials.${idx}.text`}
+                placeholder="Texte de l'avis"
+                value={item.text || ""}
+                onChange={handleChange}
+                className="border p-1 w-full"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  testimonials: [...(section.content.testimonials || []), { name: "", role: "", photo: "", text: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un avis
+          </button>
+        </>
+      )}
+
+      {section.type === "faq" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.items || []).map((item: any, idx: number) => (
+            <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
+              <input
+                name={`items.${idx}.question`}
+                placeholder="Question"
+                value={item.question || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <textarea
+                name={`items.${idx}.answer`}
+                placeholder="Réponse"
+                value={item.answer || ""}
+                onChange={handleChange}
+                className="border p-1 w-full"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  items: [...(section.content.items || []), { question: "", answer: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter une question
+          </button>
+        </>
+      )}
+
+      {section.type === "pricing" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.plans || []).map((plan: any, idx: number) => (
+            <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
+              <input
+                name={`plans.${idx}.name`}
+                placeholder="Nom du plan"
+                value={plan.name || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`plans.${idx}.price`}
+                placeholder="Prix"
+                value={plan.price || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <div className="mb-1">
+                <label className="text-xs">Fonctionnalités :</label>
+                {(plan.features || []).map((f: string, fidx: number) => (
+                  <input
+                    key={fidx}
+                    name={`plans.${idx}.features.${fidx}`}
+                    placeholder={`Fonctionnalité ${fidx + 1}`}
+                    value={f || ""}
+                    onChange={handleChange}
+                    className="border p-1 w-full mb-1"
+                  />
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onChange) {
+                      const updated = [...(section.content.plans || [])]
+                      updated[idx].features = [...(updated[idx].features || []), ""]
+                      onChange({ ...section.content, plans: updated })
+                    }
+                  }}
+                  className="bg-gray-100 px-2 py-0.5 rounded text-xs"
+                >
+                  + Ajouter une fonctionnalité
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  name={`plans.${idx}.cta.label`}
+                  placeholder="Texte bouton"
+                  value={plan.cta?.label || ""}
+                  onChange={handleChange}
+                  className="border p-1 flex-1"
+                />
+                <input
+                  name={`plans.${idx}.cta.href`}
+                  placeholder="Lien bouton"
+                  value={plan.cta?.href || ""}
+                  onChange={handleChange}
+                  className="border p-1 flex-1"
+                />
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  plans: [...(section.content.plans || []), { name: "", price: "", features: [], cta: { label: "", href: "" } }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un plan
+          </button>
+        </>
+      )}
+
+      {section.type === "team" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.members || []).map((member: any, idx: number) => (
+            <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
+              <input
+                name={`members.${idx}.name`}
+                placeholder="Nom"
+                value={member.name || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`members.${idx}.role`}
+                placeholder="Rôle"
+                value={member.role || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`members.${idx}.photo`}
+                placeholder="URL photo"
+                value={member.photo || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <textarea
+                name={`members.${idx}.bio`}
+                placeholder="Bio"
+                value={member.bio || ""}
+                onChange={handleChange}
+                className="border p-1 w-full"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  members: [...(section.content.members || []), { name: "", role: "", photo: "", bio: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un membre
+          </button>
+        </>
+      )}
+
+      {section.type === "logos" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.logos || []).map((logo: any, idx: number) => (
+            <div key={idx} className="flex gap-2 items-center mb-2">
+              <input
+                name={`logos.${idx}.url`}
+                placeholder="URL logo"
+                value={logo.url || ""}
+                onChange={handleChange}
+                className="border p-1 flex-1"
+              />
+              <input
+                name={`logos.${idx}.alt`}
+                placeholder="Texte alternatif"
+                value={logo.alt || ""}
+                onChange={handleChange}
+                className="border p-1 flex-1"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  logos: [...(section.content.logos || []), { url: "", alt: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un logo
+          </button>
+        </>
+      )}
+
+      {section.type === "newsletter" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="subtitle"
+            placeholder="Sous-titre"
+            value={section.content.subtitle || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="placeholder"
+            placeholder="Placeholder email"
+            value={section.content.placeholder || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="button"
+            placeholder="Texte du bouton"
+            value={section.content.button || ""}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </>
+      )}
+
+      {section.type === "gallery" && (
+        <>
+          {/* Ajout automatique de 10 images par défaut si aucune n'est présente */}
+          {section.content.images?.length === 0 && onChange && onChange({
+            ...section.content,
+            images: Array.from({ length: 10 }, () => ({
+              url: "",
+              alt: ""
+            }))
+          })}
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.images || []).map((img: any, idx: number) => (
+            <div key={idx} className="flex gap-2 items-center mb-2">
+              <input
+                name={`images.${idx}.url`}
+                placeholder="URL image"
+                value={img.url || ""}
+                onChange={handleChange}
+                className="border p-1 flex-1"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  images: [...(section.content.images || []), { url: "/image-placeholder.webp", alt: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter une image
+          </button>
+        </>
+      )}
+
+      {section.type === "footer" && (
+        <>
+          {section.content.links?.length === 0 && onChange && onChange({
+            ...section.content,
+            links: [
+              { label: "Lien", href: "" },
+              { label: "Lien", href: "" },
+              { label: "Lien", href: "" },
+            ]
+          })}
+          <div className="flex flex-col gap-2 mb-2">
+            <input
+              name="logo"
+              placeholder="URL du logo"
+              value={section.content.logo || ""}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            />
+            <input
+              name="title"
+              placeholder="Titre ou nom du site"
+              value={section.content.title || ""}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            />
+            <input
+              name="text"
+              placeholder="Texte du footer (copyright, phrase, etc.)"
+              value={section.content.text || ""}
+              onChange={handleChange}
+              className="border p-2 w-full"
+            />
+          </div>
+          <div className="mb-2 font-semibold">Liens</div>
+          {(section.content.links || []).map((link: any, idx: number) => (
+            <div key={idx} className="flex gap-2 items-center mb-2">
+              <input
+                name={`links.${idx}.label`}
+                placeholder="Label"
+                value={link.label || ""}
+                onChange={handleChange}
+                className="border p-1 flex-1"
+              />
+              <input
+                name={`links.${idx}.href`}
+                placeholder="Lien"
+                value={link.href || ""}
+                onChange={handleChange}
+                className="border p-1 flex-1"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  links: [...(section.content.links || []), { label: "", href: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un lien
+          </button>
+        </>
+      )}
+
+      {section.type === "finalCta" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="subtitle"
+            placeholder="Sous-titre"
+            value={section.content.subtitle || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="button.label"
+            placeholder="Texte du bouton"
+            value={section.content.button?.label || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          <input
+            name="button.href"
+            placeholder="Lien du bouton"
+            value={section.content.button?.href || ""}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </>
+      )}
+
+      {section.type === "blog" && (
+        <>
+          <input
+            name="title"
+            placeholder="Titre de la section"
+            value={section.content.title || ""}
+            onChange={handleChange}
+            className="border p-2 w-full mb-2"
+          />
+          {(section.content.posts || []).map((post: any, idx: number) => (
+            <div key={idx} className="border p-2 mb-2 rounded bg-gray-50">
+              <input
+                name={`posts.${idx}.title`}
+                placeholder="Titre de l'article"
+                value={post.title || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`posts.${idx}.excerpt`}
+                placeholder="Extrait"
+                value={post.excerpt || ""}
+                onChange={handleChange}
+                className="border p-1 w-full mb-1"
+              />
+              <input
+                name={`posts.${idx}.href`}
+                placeholder="Lien"
+                value={post.href || ""}
+                onChange={handleChange}
+                className="border p-1 w-full"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              if (onChange) {
+                onChange({
+                  ...section.content,
+                  posts: [...(section.content.posts || []), { title: "", excerpt: "", href: "" }],
+                })
+              }
+            }}
+            className="bg-gray-200 px-3 py-1 rounded"
+          >
+            + Ajouter un post
           </button>
         </>
       )}

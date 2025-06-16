@@ -13,6 +13,43 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 
+const SECTION_TYPES = [
+  { value: "navbar", label: "Navigation" },
+  { value: "hero", label: "Hero" },
+  { value: "textImage", label: "Texte + Image" },
+  { value: "features", label: "Avantages" },
+  { value: "testimonials", label: "Témoignages" },
+  { value: "faq", label: "FAQ" },
+  { value: "pricing", label: "Tarifs" },
+  { value: "team", label: "Équipe" },
+  { value: "logos", label: "Logos partenaires" },
+  { value: "newsletter", label: "Newsletter" },
+  { value: "gallery", label: "Galerie" },
+  { value: "finalCta", label: "Call to Action final" },
+  { value: "footer", label: "Footer" },
+  { value: "blog", label: "Blog" },
+]
+
+function getDefaultContent(type: string) {
+  switch (type) {
+    case "navbar": return { title: "", logo: "", links: [], cta: { label: "", href: "" } }
+    case "hero": return { title: "", subtitle: "", image: "", overlayOpacity: 0.5, cta: { label: "", href: "", color: "#2563eb" } }
+    case "textImage": return { title: "", text: "", image: "", position: "left", cta: { label: "", href: "", color: "#2563eb" } }
+    case "features": return { title: "", items: [] }
+    case "testimonials": return { title: "", testimonials: [] }
+    case "faq": return { title: "", items: [] }
+    case "pricing": return { title: "", plans: [] }
+    case "team": return { title: "", members: [] }
+    case "logos": return { title: "", logos: [] }
+    case "newsletter": return { title: "", subtitle: "", placeholder: "", button: "" }
+    case "gallery": return { title: "", images: [] }
+    case "footer": return { text: "", links: [] }
+    case "finalCta": return { title: "", subtitle: "", button: { label: "", href: "" } }
+    case "blog": return { title: "", posts: [] }
+    default: return {}
+  }
+}
+
 export function SectionListEditor({
   initialSections,
   slug,
@@ -28,6 +65,7 @@ export function SectionListEditor({
   const [sections, setSections] = useState(initialSections)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showError, setShowError] = useState(false)
+  const [newSectionType, setNewSectionType] = useState("hero")
 
   // Synchronise le parent à chaque changement
   useEffect(() => {
@@ -124,6 +162,35 @@ export function SectionListEditor({
           </SortableItem>
         ))}
       </SortableContext>
+      <div className="flex gap-2 mt-8 items-center">
+        <select
+          value={newSectionType}
+          onChange={e => setNewSectionType(e.target.value)}
+          className="border p-2 rounded"
+        >
+          {SECTION_TYPES.map(type => (
+            <option key={type.value} value={type.value}>{type.label}</option>
+          ))}
+        </select>
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+          onClick={() => {
+            const newSection = {
+              id: Math.random().toString(36).slice(2),
+              type: newSectionType,
+              content: getDefaultContent(newSectionType),
+              order: sections.length,
+              pageId: "",
+              position: sections.length,
+            }
+            setSections([...sections, newSection])
+            if (onSectionsChange) onSectionsChange([...sections, newSection])
+          }}
+          type="button"
+        >
+          + Ajouter une section
+        </button>
+      </div>
     </DndContext>
   )
 }
