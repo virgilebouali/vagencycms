@@ -49,6 +49,30 @@ const COLORS = [
   { name: "Gris", value: "#6b7280" },
 ]
 
+const FONT_SIZES = [
+  { name: "Petit", value: "sm" },
+  { name: "Normal", value: "base" },
+  { name: "Grand", value: "lg" },
+  { name: "Très grand", value: "xl" },
+  { name: "Énorme", value: "2xl" },
+  { name: "Titre", value: "3xl" },
+  { name: "Grand titre", value: "4xl" },
+]
+
+const IMAGE_SIZES = [
+  { name: "Petite", value: "w-32" },
+  { name: "Moyenne", value: "w-64" },
+  { name: "Grande", value: "w-96" },
+  { name: "Full", value: "w-full" },
+]
+
+const IMAGE_ROUNDED = [
+  { name: "Aucun", value: "rounded-none" },
+  { name: "Arrondi", value: "rounded" },
+  { name: "Arrondi +", value: "rounded-lg" },
+  { name: "Cercle", value: "rounded-full" },
+]
+
 type Section = {
   id: string
   type: string
@@ -105,15 +129,26 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
         }
       } else {
         const [parent, child] = parts
-        newContent = {
-          ...section.content,
-          [parent]: { ...(section.content[parent] || {}), [child]: value },
+        if (parent === 'cta') {
+          newContent = {
+            ...section.content,
+            cta: { ...(section.content.cta || {}), [child]: value },
+          }
+        } else {
+          newContent = {
+            ...section.content,
+            [parent]: { ...(section.content[parent] || {}), [child]: value },
+          }
         }
       }
     } else {
-      newContent = { ...section.content, [name]: value }
+      newContent = {
+        ...section.content,
+        [name]: value
+      }
     }
 
+    console.log('Nouveau contenu:', newContent) // Pour le débogage
     if (onChange) onChange(newContent)
   }
 
@@ -130,62 +165,223 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
 
       {section.type === "hero" && (
         <>
-          <input
-            name="title"
-            placeholder="Titre"
-            value={section.content.title || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
-          <input
-            name="subtitle"
-            placeholder="Sous-titre"
-            value={section.content.subtitle || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
-          <input
-            name="image"
-            placeholder="URL image"
-            value={section.content.image || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                name="title"
+                placeholder="Titre"
+                value={section.content.title || ""}
+                onChange={handleChange}
+                className="border p-2 flex-1"
+              />
+              <select
+                name="titleSize"
+                value={section.content.titleSize || "4xl"}
+                onChange={handleChange}
+                className="border p-2"
+              >
+                {FONT_SIZES.map(size => (
+                  <option key={size.value} value={size.value}>{size.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                name="subtitle"
+                placeholder="Sous-titre"
+                value={section.content.subtitle || ""}
+                onChange={handleChange}
+                className="border p-2 flex-1"
+              />
+              <select
+                name="subtitleSize"
+                value={section.content.subtitleSize || "xl"}
+                onChange={handleChange}
+                className="border p-2"
+              >
+                {FONT_SIZES.map(size => (
+                  <option key={size.value} value={size.value}>{size.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              name="image"
+              placeholder="URL image"
+              value={section.content.image || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-sm">Opacité de l'overlay :</label>
+            <input
+              type="range"
+              name="overlayOpacity"
+              min={0}
+              max={1}
+              step={0.05}
+              value={section.content.overlayOpacity ?? 0.5}
+              onChange={handleChange}
+              className="w-32"
+            />
+            <span className="text-xs">{Math.round(100 * (section.content.overlayOpacity ?? 0.5))}%</span>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              name="cta.label"
+              placeholder="Bouton"
+              value={section.content.cta?.label || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <input
+              name="cta.href"
+              placeholder="Lien du bouton"
+              value={section.content.cta?.href || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <div className="flex items-center gap-1">
+              {COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => {
+                    if (onChange) {
+                      onChange({
+                        ...section.content,
+                        cta: { ...(section.content.cta || {}), color: color.value },
+                      })
+                    }
+                  }}
+                  className={`w-6 h-6 rounded-full border cursor-pointer ${section.content.cta?.color === color.value ? 'ring-2 ring-black' : ''}`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          </div>
         </>
       )}
 
       {section.type === "textImage" && (
         <>
-          <input
-            name="title"
-            placeholder="Titre"
-            value={section.content.title || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
-          <input
-            name="text"
-            placeholder="Texte"
-            value={section.content.text || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
-          <input
-            name="image"
-            placeholder="URL image"
-            value={section.content.image || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
-          <select
-            name="position"
-            value={section.content.position || "left"}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          >
-            <option value="left">Image à gauche</option>
-            <option value="right">Image à droite</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <input
+              name="title"
+              placeholder="Titre"
+              value={section.content.title || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="titleSize"
+              value={section.content.titleSize || "2xl"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              name="text"
+              placeholder="Texte"
+              value={section.content.text || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="textSize"
+              value={section.content.textSize || "base"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              name="image"
+              placeholder="URL image"
+              value={section.content.image || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="imageSize"
+              value={section.content.imageSize || "w-full"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {IMAGE_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+            <select
+              name="imageRounded"
+              value={section.content.imageRounded || "rounded"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {IMAGE_ROUNDED.map(r => (
+                <option key={r.value} value={r.value}>{r.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              name="cta.label"
+              placeholder="Bouton"
+              value={section.content.cta?.label || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <input
+              name="cta.href"
+              placeholder="Lien du bouton"
+              value={section.content.cta?.href || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <div className="flex items-center gap-1">
+              {COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => {
+                    if (onChange) {
+                      onChange({
+                        ...section.content,
+                        cta: { ...(section.content.cta || {}), color: color.value },
+                      })
+                    }
+                  }}
+                  className={`w-6 h-6 rounded-full border cursor-pointer ${section.content.cta?.color === color.value ? 'ring-2 ring-black' : ''}`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Position de l'image :</label>
+            <select
+              name="position"
+              value={section.content.position || "left"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              <option value="left">Gauche</option>
+              <option value="right">Droite</option>
+            </select>
+          </div>
         </>
       )}
 
@@ -198,29 +394,54 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
             onChange={handleChange}
             className="border p-2 w-full"
           />
-          <input
-            name="title"
-            placeholder="Titre"
-            value={section.content.title || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              name="title"
+              placeholder="Titre"
+              value={section.content.title || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="titleSize"
+              value={section.content.titleSize || "xl"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
           <p className="mt-2 font-semibold">Liens</p>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-sm">Taille des liens :</label>
+            <select
+              name="linksSize"
+              value={section.content.linksSize || "base"}
+              onChange={handleChange}
+              className="border p-1 w-24"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
           {(section.content.links || []).map((link: any, index: number) => (
-            <div key={index} className="flex gap-2 mb-2">
+            <div key={index} className="flex gap-2 mb-2 flex-nowrap items-center">
               <input
                 name={`links.${index}.label`}
                 value={link.label || ""}
                 placeholder="Label"
                 onChange={handleChange}
-                className="border p-1 w-full"
+                className="border p-1 flex-1 min-w-0"
               />
               <input
                 name={`links.${index}.href`}
                 value={link.href || ""}
                 placeholder="Lien"
                 onChange={handleChange}
-                className="border p-1 w-full"
+                className="border p-1 flex-1 min-w-0"
               />
             </div>
           ))}
@@ -240,13 +461,25 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
           </button>
 
           <p className="mt-2 font-semibold">CTA</p>
-          <input
-            name="cta.label"
-            placeholder="Texte du bouton"
-            value={section.content.cta?.label || ""}
-            onChange={handleChange}
-            className="border p-2 w-full"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              name="cta.label"
+              placeholder="Texte du bouton"
+              value={section.content.cta?.label || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="cta.size"
+              value={section.content.cta?.size || "base"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
           <input
             name="cta.href"
             placeholder="Lien du bouton"
@@ -259,6 +492,49 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
 
       {section.type === "features" && (
         <>
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              name="title"
+              placeholder="Titre"
+              value={section.content.title || ""}
+              onChange={handleChange}
+              className="border p-2 flex-1"
+            />
+            <select
+              name="titleSize"
+              value={section.content.titleSize || "2xl"}
+              onChange={handleChange}
+              className="border p-2"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-sm">Taille des titres :</label>
+            <select
+              name="featuresTitleSize"
+              value={section.content.featuresTitleSize || "lg"}
+              onChange={handleChange}
+              className="border p-1 w-24"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+            <label className="text-sm">Taille des textes :</label>
+            <select
+              name="featuresTextSize"
+              value={section.content.featuresTextSize || "base"}
+              onChange={handleChange}
+              className="border p-1 w-24"
+            >
+              {FONT_SIZES.map(size => (
+                <option key={size.value} value={size.value}>{size.name}</option>
+              ))}
+            </select>
+          </div>
           <p className="mt-2 font-semibold">Avantages</p>
           {(section.content.items || []).map((item: any, index: number) => (
             <div key={index} className="border p-2 mb-2 rounded bg-gray-50">
@@ -327,20 +603,24 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
                 ))}
               </div>
 
-              <input
-                name={`items.${index}.title`}
-                placeholder="Titre"
-                value={item.title || ""}
-                onChange={handleChange}
-                className="border p-1 w-full mb-1"
-              />
-              <input
-                name={`items.${index}.text`}
-                placeholder="Texte"
-                value={item.text || ""}
-                onChange={handleChange}
-                className="border p-1 w-full"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  name={`items.${index}.title`}
+                  placeholder="Titre"
+                  value={item.title || ""}
+                  onChange={handleChange}
+                  className="border p-1 flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  name={`items.${index}.text`}
+                  placeholder="Texte"
+                  value={item.text || ""}
+                  onChange={handleChange}
+                  className="border p-1 flex-1"
+                />
+              </div>
             </div>
           ))}
           <button
@@ -349,7 +629,12 @@ export default function SectionEditor({ section, onChange }: Props & { onChange?
               if (onChange) {
                 onChange({
                   ...section.content,
-                  items: [...(section.content.items || []), { icon: "", title: "", text: "", color: COLORS[0].value }],
+                  items: [...(section.content.items || []), { 
+                    icon: "", 
+                    title: "", 
+                    text: "", 
+                    color: COLORS[0].value
+                  }],
                 })
               }
             }}
